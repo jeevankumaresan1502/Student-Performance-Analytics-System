@@ -1,0 +1,101 @@
+"""
+Generate a sample student performance dataset for testing the analytics app.
+"""
+import pandas as pd
+import numpy as np
+import random
+import string
+
+np.random.seed(42)
+
+num_students = 150
+
+# Generate student IDs
+student_ids = [f"STU{str(i).zfill(4)}" for i in range(1, num_students + 1)]
+
+# Generate student names
+first_names = [
+    "Aarav", "Aditi", "Aisha", "Amit", "Ananya", "Arjun", "Bhavya", "Chitra",
+    "Deepak", "Divya", "Esha", "Farhan", "Gauri", "Harsh", "Isha", "Jai",
+    "Kavya", "Kiran", "Lakshmi", "Manish", "Meera", "Naveen", "Neha", "Omkar",
+    "Pallavi", "Pranav", "Priya", "Rahul", "Riya", "Rohit", "Sakshi", "Sanjay",
+    "Shreya", "Suresh", "Tanvi", "Uday", "Varun", "Vidya", "Yash", "Zara",
+    "Aditya", "Ankita", "Chirag", "Diksha", "Gaurav", "Hema", "Ishaan", "Jiya",
+    "Kartik", "Lavanya"
+]
+last_names = [
+    "Sharma", "Patel", "Singh", "Kumar", "Gupta", "Joshi", "Verma", "Reddy",
+    "Nair", "Iyer", "Das", "Mehta", "Pillai", "Rao", "Bhat", "Kapoor",
+    "Mishra", "Thakur", "Menon", "Saxena", "Agarwal", "Chatterjee", "Roy",
+    "Banerjee", "Mukherjee"
+]
+
+student_names = [
+    f"{random.choice(first_names)} {random.choice(last_names)}"
+    for _ in range(num_students)
+]
+
+# Generate attendance (%) - normally distributed around 75%
+attendance = np.clip(np.random.normal(75, 15, num_students), 30, 100).round(1)
+
+# Generate study hours per week - correlated with attendance
+study_hours = np.clip(
+    attendance * 0.3 + np.random.normal(0, 5, num_students), 2, 40
+).round(1)
+
+# Generate internal marks (out of 50) - correlated with attendance & study hours
+internal_marks = np.clip(
+    attendance * 0.25 + study_hours * 0.5 + np.random.normal(5, 5, num_students),
+    5, 50
+).round(0).astype(int)
+
+# Generate assignment scores (out of 100) - correlated with study hours
+assignment_scores = np.clip(
+    study_hours * 1.5 + attendance * 0.3 + np.random.normal(10, 10, num_students),
+    10, 100
+).round(0).astype(int)
+
+# Generate final exam marks (out of 100) - correlated with all factors
+final_exam_marks = np.clip(
+    attendance * 0.3 + internal_marks * 0.5 + assignment_scores * 0.2 +
+    study_hours * 0.3 + np.random.normal(0, 8, num_students),
+    10, 100
+).round(0).astype(int)
+
+# Assign grades based on final exam marks
+def assign_grade(marks):
+    if marks >= 90:
+        return "A+"
+    elif marks >= 80:
+        return "A"
+    elif marks >= 70:
+        return "B+"
+    elif marks >= 60:
+        return "B"
+    elif marks >= 50:
+        return "C"
+    elif marks >= 40:
+        return "D"
+    else:
+        return "F"
+
+grades = [assign_grade(m) for m in final_exam_marks]
+
+# Create DataFrame
+df = pd.DataFrame({
+    "Student_ID": student_ids,
+    "Student_Name": student_names,
+    "Attendance_Pct": attendance,
+    "Study_Hours_Per_Week": study_hours,
+    "Internal_Marks": internal_marks,
+    "Assignment_Score": assignment_scores,
+    "Final_Exam_Marks": final_exam_marks,
+    "Grade": grades
+})
+
+# Save to CSV
+df.to_csv("sample_student_data.csv", index=False)
+print(f"✅ Generated sample dataset with {num_students} students")
+print(f"📁 Saved to: sample_student_data.csv")
+print(f"\n📊 Quick stats:")
+print(df.describe())
